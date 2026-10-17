@@ -110,12 +110,13 @@ document.querySelectorAll('[data-control]').forEach(button=>{
 window.addEventListener('blur',()=>{clearInput();if(playing&&!paused)setPause(true);});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){clearInput();if(playing&&!paused)setPause(true);}});
 window.addEventListener('pagehide',()=>{if(playing&&!state.finished){world().resume=serialize(state);save();}});
+function gamepadInput(){const pads=navigator.getGamepads?navigator.getGamepads():[];let left=false,right=false,jump=false,run=false;for(const pad of pads){if(!pad)continue;const ax=pad.axes&&pad.axes[0]?pad.axes[0]:0;if(ax<-0.35)left=true;if(ax>0.35)right=true;if(pad.buttons&&pad.buttons[14]&&pad.buttons[14].pressed)left=true;if(pad.buttons&&pad.buttons[15]&&pad.buttons[15].pressed)right=true;if(pad.buttons&&pad.buttons[0]&&pad.buttons[0].pressed)jump=true;if(pad.buttons&&( (pad.buttons[1]&&pad.buttons[1].pressed)||(pad.buttons[7]&&pad.buttons[7].pressed)))run=true;}return {left,right,jump,run};}
 let previous=0,accumulator=0,hudTick=0;
 function frame(timestamp){
   const dt=Math.min(.1,(timestamp-previous)/1000||0);previous=timestamp;
   if(playing&&!paused&&!state.finished){
-    accumulator+=dt;while(accumulator>=STEP){step(state,input);accumulator-=STEP;}
-    for(const event of state.events.splice(0)){tone(event);if(event==='finish')finish();else if(event==='checkpoint'){world().resume=serialize(state);save();notify('checkpoint');}else if(event==='power')notify(preferences.theme==='elsa'?'powerElsa':'powerClassic');else if(['hurt','retry','shield'].includes(event)){notify(event);if(renderer)renderer.camera=Math.max(0,state.player.x-270);}}
+    const gp=gamepadInput();const frameInput={left:input.left||gp.left,right:input.right||gp.right,jump:input.jump||gp.jump,run:input.run||gp.run};
+    accumulator+=dt;while(accumulator>=STEP){step(state,frameInput);accumulator-=STEP;}    for(const event of state.events.splice(0)){tone(event);if(event==='finish')finish();else if(event==='checkpoint'){world().resume=serialize(state);save();notify('checkpoint');}else if(event==='power')notify(preferences.theme==='elsa'?'powerElsa':'powerClassic');else if(['hurt','retry','shield'].includes(event)){notify(event);if(renderer)renderer.camera=Math.max(0,state.player.x-270);}}
   }else{accumulator=0;if(!playing)state.time+=dt;}
   renderer.draw(state,preferences.theme,!playing);hudTick+=dt;if(hudTick>.1){updateHud();hudTick=0;}requestAnimationFrame(frame);
 }
