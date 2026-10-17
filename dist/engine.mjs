@@ -3,11 +3,11 @@ import {makeLevel,GROUND} from './levels.mjs';
 export const STEP=1/60;
 export function createGame(index=0,difficulty='relaxed',snapshot=null){
   const level=makeLevel(index),maxHearts=difficulty==='relaxed'?5:3;
-  const state={level,difficulty,maxHearts,hearts:maxHearts,coins:0,stars:0,score:0,time:0,checkpoint:96,finished:false,events:[],particles:[],power:0,jumpHeld:false,jumpBuffer:0,coyote:0,
+  const state={level,difficulty,maxHearts,hearts:maxHearts,coins:0,stars:0,score:0,time:0,checkpoint:96,furthestX:96,finished:false,events:[],particles:[],power:0,jumpHeld:false,jumpBuffer:0,coyote:0,
     player:{x:96,y:GROUND-54,w:32,h:54,vx:0,vy:0,grounded:false,facing:1,invincible:1}};
   if(snapshot?.level===index){
     const checkpoint=level.checkpoints.includes(snapshot.checkpoint)?snapshot.checkpoint:96;
-    state.checkpoint=checkpoint;state.player.x=checkpoint;
+    state.checkpoint=checkpoint;state.player.x=checkpoint;state.furthestX=checkpoint;
     for(const item of level.items)if(snapshot.collected?.includes(item.id)){item.collected=true;if(item.kind==='star')state.stars++;else state.coins++;}
     for(const box of level.boxes)box.used=Boolean(snapshot.used?.includes(box.id));
     for(const enemy of level.enemies)enemy.dead=Boolean(snapshot.dead?.includes(enemy.id));
@@ -40,7 +40,8 @@ export function step(state,input={},dt=STEP){
   move(p,state.level.solids,dt,box=>{
     if(box.kind==='box'&&!box.used){box.used=true;state.power=12;state.score+=30;state.events.push('power');}
   });
-  p.x=bound(p.x,Math.max(0,state.checkpoint-96),state.level.width-p.w);
+  state.furthestX=Math.max(state.furthestX,p.x);
+  p.x=bound(p.x,Math.max(0,state.checkpoint-96,state.furthestX-400),state.level.width-p.w);
   if(p.y>650){hurt(state,true);return;}
   for(const item of state.level.items)if(!item.collected&&touches(p,item)){
     item.collected=true;state.score+=item.kind==='star'?100:10;
