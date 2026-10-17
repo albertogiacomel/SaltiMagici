@@ -29,6 +29,8 @@ Frecce / A D: movimento; Spazio / W / freccia su: salto; Maiusc: corsa; Esc: pau
 
 Le impostazioni cambiano immediatamente lingua (IT/EN), suoni e difficoltà. Progressi separati per mondo in localStorage; nessun account o backend necessario.
 
+Il limite di ritorno dipende dall’avanzamento e dai checkpoint, ma si estende verso gli oggetti ancora da prendere, lasciando 360 pixel per avvicinarsi e saltare. Vale anche dopo i checkpoint e include monete, stelle, blocchi premio e protezioni comparse. Una zona completata torna soggetta al limite senza spostare automaticamente il personaggio; la telecamera segue lo stesso confine. I checkpoint mantengono il punto di ripartenza.
+
 ## Architettura
 
 ```mermaid

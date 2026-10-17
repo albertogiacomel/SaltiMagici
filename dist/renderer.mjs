@@ -1,5 +1,7 @@
 import {bound} from './physics.mjs';
-import {CAMERA_OFFSET,CAMERA_BACK_MARGIN} from './config.mjs';
+import {CAMERA_OFFSET} from './config.mjs';
+import {backtrackLimit} from './engine.mjs';
+export const cameraTarget=(state,viewportWidth=960)=>bound(state.player.x-CAMERA_OFFSET,Math.max(0,Math.min(state.player.x,backtrackLimit(state))-CAMERA_OFFSET),Math.max(0,state.level.width-viewportWidth));
 const palette={classic:{ground:'#ba8051',edge:'#79ae5b',lip:'#b8d77b',brick:'#d9a066',shadow:'#986340',platform:'#f3d79a',sky:'#bde9ef'},elsa:{ground:'#9b9dc7',edge:'#e2efff',lip:'#fffaff',brick:'#b0b9e7',shadow:'#777dab',platform:'#d1d7f4',sky:'#dce1ff'}};
 const rounded=(c,x,y,w,h,r,fill)=>{c.fillStyle=fill;c.beginPath();c.roundRect(x,y,w,h,r);c.fill();};
 const ellipse=(c,x,y,rx,ry,fill)=>{c.fillStyle=fill;c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fill();};
@@ -61,12 +63,11 @@ export class Renderer{
   constructor(canvas,worlds){this.canvas=canvas;this.c=canvas.getContext('2d',{alpha:false});this.worlds=worlds;this.camera=0;}
   draw(state,theme,preview=false){
     const c=this.c,p=state.player,pal=palette[theme],W=960,H=540,t=state.time;
-    const furthest=Number.isFinite(state.furthestX)?state.furthestX:96;
-    const target=preview?0:bound(p.x-CAMERA_OFFSET,Math.max(0,furthest-CAMERA_BACK_MARGIN),state.level.width-W);this.camera+=(target-this.camera)*.18;
+    const target=preview?0:cameraTarget(state,W);this.camera+=(target-this.camera)*.18;
     if(Math.abs(this.camera-target)>700)this.camera=target;
     c.clearRect(0,0,W,H);c.fillStyle=pal.sky;c.fillRect(0,0,W,H);
     const sourceY=theme==='elsa'?this.worlds.height/2:0;
-    const sourceWidth=this.worlds.width*.84,sourceX=(this.worlds.width-sourceWidth)*(this.camera/(state.level.width-W));
+    const sourceWidth=this.worlds.width*.84,sourceX=(this.worlds.width-sourceWidth)*(this.camera/Math.max(1,state.level.width-W));
     c.drawImage(this.worlds,sourceX,sourceY,sourceWidth,this.worlds.height/2,0,0,W,H);
     c.fillStyle=theme==='elsa'?'#eee8ff12':'#fff8d212';c.fillRect(0,0,W,H);
     c.save();c.translate(-Math.round(this.camera),0);

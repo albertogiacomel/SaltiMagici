@@ -1,7 +1,14 @@
 import {bound,touches,move} from './physics.mjs';
 import {makeLevel,GROUND} from './levels.mjs';
-import {POWER_DURATION,BACKTRACK_MARGIN} from './config.mjs';
+import {POWER_DURATION,BACKTRACK_MARGIN,COLLECTIBLE_APPROACH} from './config.mjs';
 export const STEP=1/60;
+export function backtrackLimit(state){
+  let limit=Math.max(0,state.checkpoint-96,state.furthestX-BACKTRACK_MARGIN);
+  // An unfinished reward keeps its approach available, including after a checkpoint.
+  for(const item of state.level.items)if(!item.collected)limit=Math.min(limit,Math.max(0,item.x-COLLECTIBLE_APPROACH));
+  for(const box of state.level.boxes)if(!box.used)limit=Math.min(limit,Math.max(0,box.x-COLLECTIBLE_APPROACH));
+  return limit;
+}
 export function createGame(index=0,difficulty='relaxed',snapshot=null){
   const level=makeLevel(index),maxHearts=difficulty==='relaxed'?5:3;
   const state={level,difficulty,maxHearts,hearts:maxHearts,coins:0,stars:0,score:0,time:0,checkpoint:96,furthestX:96,finished:false,events:[],particles:[],power:0,jumpHeld:false,jumpBuffer:0,coyote:0,
@@ -38,11 +45,13 @@ export function step(state,input={},dt=STEP){
   if(!input.jump&&p.vy < -310)p.vy=-310;
   p.vy=bound(p.vy+1750*dt,-900,900);
   const previousBottom=p.y+p.h;
+  const previousX=p.x;
   move(p,state.level.solids,dt,box=>{
     if(box.kind==='box'&&!box.used){box.used=true;state.level.items.push({id:`power-${box.id}`,x:box.x+8,y:box.y-40,w:28,h:28,kind:'power',collected:false});}
   });
   state.furthestX=Math.max(state.furthestX,p.x);
-  p.x=bound(p.x,Math.max(0,state.checkpoint-96,state.furthestX-BACKTRACK_MARGIN),state.level.width-p.w);
+  // Closing a completed area must never push or teleport the player forward.
+  p.x=bound(p.x,Math.min(previousX,backtrackLimit(state)),state.level.width-p.w);
   if(p.y>650){hurt(state,true);return;}
   for(const item of state.level.items)if(!item.collected&&touches(p,item)){
     item.collected=true;

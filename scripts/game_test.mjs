@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createGame,step,serialize,hurt,STEP} from '../dist/engine.mjs';
+import {createGame,step,serialize,hurt,STEP,backtrackLimit} from '../dist/engine.mjs';
+import {cameraTarget} from '../dist/renderer.mjs';
+import {BACKTRACK_MARGIN,COLLECTIBLE_APPROACH,CAMERA_OFFSET} from '../dist/config.mjs';
 import {makeLevel,GROUND} from '../dist/levels.mjs';
 import {messages,levelNames} from '../dist/i18n.mjs';
 import {move,overlap} from '../dist/physics.mjs';
@@ -18,7 +20,48 @@ test('landing on an enemy defeats it; side impact removes one heart with invulne
 test('pit recovery uses checkpoints and never exhausts attempts',()=>{const s=createGame();s.checkpoint=s.level.checkpoints[0];s.hearts=1;s.player.y=700;step(s);assert.equal(s.player.x,s.checkpoint);assert.equal(s.hearts,s.maxHearts);assert.ok(s.events.includes('retry'));});
 test('checkpoint serialization preserves collected rewards without duplication',()=>{const s=createGame(1);s.level.items[0].collected=true;s.level.boxes[0].used=true;s.level.enemies[0].dead=true;s.checkpoint=s.level.checkpoints[0];const restored=createGame(1,'normal',serialize(s));assert.equal(restored.player.x,s.checkpoint);assert.equal(restored.coins,1);assert.equal(restored.level.boxes[0].used,true);assert.equal(restored.level.enemies[0].dead,true);assert.equal(restored.maxHearts,3);});
 test('invalid saved checkpoint falls back to the safe start',()=>{const s=createGame(0,'relaxed',{level:0,checkpoint:NaN});assert.equal(s.player.x,96);});
+test('completed areas retain the backward limit without pushing the player forward',()=>{
+  const s=createGame();for(const item of s.level.items)item.collected=true;for(const box of s.level.boxes)box.used=true;
+  s.player.x=500;s.furthestX=500;ticks(s,100,{left:true});assert.equal(s.player.x,500-BACKTRACK_MARGIN);
+  s.player.x=100;step(s);assert.ok(s.player.x<=100,'Closing the limit never teleports a player');
+  assert.equal(cameraTarget(s),0);
+});
+test('camera follows a return to a missed reward and clamps at both level edges',()=>{
+  const s=createGame();s.furthestX=s.level.width-300;s.checkpoint=s.level.checkpoints.at(-1);
+  s.player.x=2000;const ahead=cameraTarget(s);s.player.x=500;
+  assert.ok(cameraTarget(s)<ahead);assert.equal(cameraTarget(s),500-CAMERA_OFFSET);
+  s.player.x=0;assert.equal(cameraTarget(s),0);
+  s.player.x=s.level.width-32;assert.equal(cameraTarget(s),s.level.width-960);
+  s.level.width=640;s.player.x=0;assert.equal(cameraTarget(s),0);
+});
 for(let index=0;index<3;index++){
+  test(`level ${index+1} keeps every missed reward and its jump approach accessible after checkpoints`,()=>{
+    const s=createGame(index);s.checkpoint=s.level.checkpoints.at(-1);s.furthestX=s.level.goal-32;
+    for(const reward of [...s.level.items,...s.level.boxes]){
+      for(const item of s.level.items)item.collected=true;for(const box of s.level.boxes)box.used=true;
+      if(reward.kind==='box')reward.used=false;else reward.collected=false;
+      assert.ok(backtrackLimit(s)<=Math.max(0,reward.x-COLLECTIBLE_APPROACH),reward.id);
+    }
+    for(const item of s.level.items)item.collected=false;for(const box of s.level.boxes)box.used=false;
+    const restored=createGame(index,'normal',serialize(s));assert.equal(backtrackLimit(restored),0);
+    // Real controls can return more than 200 px to the initial missed coin.
+    s.player.x=500;ticks(s,80,{left:true});assert.ok(s.player.x<220);assert.ok(s.coins>0);
+    const checkpoint=s.checkpoint;hurt(s,true);assert.equal(s.player.x,checkpoint);
+    // Isolate each collectible to ensure none is hidden by the movement boundary.
+    for(const reward of s.level.items){
+      for(const item of s.level.items)item.collected=true;for(const box of s.level.boxes)box.used=true;
+      reward.collected=false;s.player.x=reward.x;s.player.y=reward.y;s.player.vx=0;s.player.vy=0;
+      step(s);assert.equal(reward.collected,true,`${reward.id} remains collectible`);
+    }
+  });
+  test(`level ${index+1} retains approach space for unopened blocks and spawned protection`,()=>{
+    const s=createGame(index);s.furthestX=s.level.goal-32;s.checkpoint=s.level.checkpoints.at(-1);
+    for(const item of s.level.items)item.collected=true;for(const box of s.level.boxes)box.used=true;
+    const box=s.level.boxes[0];box.used=false;assert.ok(backtrackLimit(s)<=Math.max(0,box.x-COLLECTIBLE_APPROACH));
+    s.player.x=box.x+8;s.player.y=box.y+box.h+2;s.player.vy=-600;step(s,{jump:true});
+    assert.equal(box.used,true);const power=s.level.items.find(item=>item.kind==='power'&&!item.collected);assert.ok(power);
+    assert.ok(backtrackLimit(s)<=Math.max(0,power.x-COLLECTIBLE_APPROACH));
+  });
   test(`level ${index+1} contains three stars, reachable gaps, safe checkpoints and a working exit`,()=>{
     const level=makeLevel(index);assert.equal(level.items.filter(i=>i.kind==='star').length,3);
     for(const [a,b]of level.gaps)assert.ok((b-a)*48<=144);

@@ -136,4 +136,4 @@ applyKitSettings();
 const worlds=new Image();worlds.onload=()=>{renderer=new Renderer($('game'),worlds);ready=true;$('play').disabled=false;translate();requestAnimationFrame(frame);};
 worlds.onerror=()=>{$('play').textContent=t('loadError');};worlds.src='assets/worlds.webp';
 // Read-only snapshot supports smoke tests and accessibility/debug diagnostics.
-Object.defineProperty(window,'SaltiMagici',{value:{getState:()=>({level:selected,theme:preferences.theme,language:preferences.language,playing,paused,ready,player:{...state.player},coins:state.coins,stars:state.stars,finished:state.finished,checkpoint:state.checkpoint,unlocked:world().unlocked}),getInput:()=>inputManager.poll()}});
+Object.defineProperty(window,'SaltiMagici',{value:{getState:()=>({level:selected,theme:preferences.theme,language:preferences.language,playing,paused,ready,camera:renderer?.camera??0,player:{...state.player},coins:state.coins,stars:state.stars,finished:state.finished,checkpoint:state.checkpoint,unlocked:world().unlocked}),getInput:()=>inputManager.poll()}});
