@@ -74,7 +74,7 @@ function playMusic(){if(!preferences.sound||!playing||paused)return;stopMusic();
 function start(resume=false){
   if(!ready)return;
   const snapshot=resume?world().resume:null;if(snapshot)selected=snapshot.level;
-  state=createGame(selected,preferences.difficulty,snapshot);playing=true;paused=false;clearInput();renderer.camera=Math.max(0,state.player.x-270);
+  state=createGame(selected,preferences.difficulty,snapshot);playing=true;paused=false;clearInput();renderer.camera=Math.max(0,state.player.x-414);
   document.body.classList.add('playing');$('start-overlay').hidden=true;$('pause-overlay').hidden=true;$('finish-overlay').hidden=true;$('hud').hidden=false;$('pause').disabled=false;
   world().resume=serialize(state);save();translate();$('game').focus({preventScroll:true});$('game-shell').scrollIntoView({behavior:'instant',block:'start'});
   if(!storageAvailable)notify('storage');tone('checkpoint');playMusic();
@@ -126,7 +126,7 @@ function frame(timestamp){
   gpJumpWas=gp.start;
   if(playing&&!paused&&!state.finished){
     const frameInput={left:input.left||gp.left,right:input.right||gp.right,jump:input.jump||gp.jump,run:input.run||gp.run};
-    accumulator+=dt;while(accumulator>=STEP){step(state,frameInput);accumulator-=STEP;}    for(const event of state.events.splice(0)){tone(event);if(event==='finish')finish();else if(event==='checkpoint'){world().resume=serialize(state);save();notify('checkpoint');}else if(event==='power')notify(preferences.theme==='elsa'?'powerElsa':'powerClassic');else if(['hurt','retry','shield'].includes(event)){notify(event);if(renderer)renderer.camera=Math.max(0,state.player.x-270);}}
+    accumulator+=dt;while(accumulator>=STEP){step(state,frameInput);accumulator-=STEP;}    for(const event of state.events.splice(0)){tone(event);if(event==='finish')finish();else if(event==='checkpoint'){world().resume=serialize(state);save();notify('checkpoint');}else if(event==='power')notify(preferences.theme==='elsa'?'powerElsa':'powerClassic');else if(['hurt','retry','shield'].includes(event)){notify(event);if(renderer)renderer.camera=Math.max(0,state.player.x-414);}}
   }else{accumulator=0;if(!playing)state.time+=dt;}
   renderer.draw(state,preferences.theme,!playing);hudTick+=dt;if(hudTick>.1){updateHud();hudTick=0;}requestAnimationFrame(frame);
 }

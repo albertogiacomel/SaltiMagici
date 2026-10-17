@@ -61,7 +61,7 @@ export class Renderer{
   draw(state,theme,preview=false){
     const c=this.c,p=state.player,pal=palette[theme],W=960,H=540,t=state.time;
     const furthest=Number.isFinite(state.furthestX)?state.furthestX:96;
-    const target=preview?0:bound(p.x-270,Math.max(0,furthest-470),state.level.width-W);this.camera+=(target-this.camera)*.18;
+    const target=preview?0:bound(p.x-414,Math.max(0,furthest-614),state.level.width-W);this.camera+=(target-this.camera)*.18;
     if(Math.abs(this.camera-target)>700)this.camera=target;
     c.clearRect(0,0,W,H);c.fillStyle=pal.sky;c.fillRect(0,0,W,H);
     const sourceY=theme==='elsa'?this.worlds.height/2:0;
