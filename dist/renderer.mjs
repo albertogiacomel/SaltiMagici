@@ -103,7 +103,7 @@ export class Renderer{
     if(state.power>0){c.strokeStyle=theme==='elsa'?'#f5c9ff':'#ffe791';c.lineWidth=3;c.beginPath();c.ellipse(p.x+p.w/2,p.y+25,34,42,0,0,Math.PI*2);c.stroke();for(let i=0;i<3;i++)star(c,p.x+16+Math.cos(t*3+i*2)*36,p.y+25+Math.sin(t*3+i*2)*40,5);}
     c.save();
     c.globalAlpha=p.invincible>0&&Math.floor(t*12)%2!==0&&!preview?.55:1;
-    character(c,p.x+p.w/2,p.y+p.h,theme,t,Math.abs(p.vx)>10,!p.grounded,p.facing);
+    character(c,p.x+p.w/2,p.y+p.h,theme,t,Math.abs(p.vx)>30,!p.grounded,p.facing);
     c.restore();
     c.restore();
     if(theme==='elsa')for(let i=0;i<14;i++){const x=(i*149+t*10)%W,y=(i*97+t*12)%430;ellipse(c,x,y,1.6,1.6,'#ffffff99');}
