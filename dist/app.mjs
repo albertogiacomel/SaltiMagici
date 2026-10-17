@@ -57,7 +57,7 @@ function translate(){
   document.querySelectorAll('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});
   $('play').textContent=t(ready?'play':'loading');$('level-title').textContent=levelName(selected);$('preview-title').textContent=levelName(selected);$('level-number').textContent=`${selected+1} / 3`;
   $('mute').textContent=preferences.sound?'♫':'♪';$('mute').setAttribute('aria-label',t('sound')+': '+t(preferences.sound?'on':'off'));$('mute').setAttribute('aria-pressed',String(preferences.sound));
-  $('pause').setAttribute('aria-label',t('pause'));$('fullscreen').setAttribute('aria-label',t(document.fullscreenElement?'exitFullscreen':'fullscreen'));$('game').setAttribute('aria-label',t('access'));
+  $('pause').setAttribute('aria-label',t('pause'));$('fullscreen').setAttribute('aria-label',t((document.fullscreenElement||document.body.classList.contains('fullscreen-mode'))?'exitFullscreen':'fullscreen'));$('game').setAttribute('aria-label',t('access'));
   $('world-picker').setAttribute('aria-label',preferences.language==='it'?'Mondi':'Worlds');
   document.querySelector('[data-control=left]').setAttribute('aria-label',preferences.language==='it'?'Sinistra':'Left');document.querySelector('[data-control=right]').setAttribute('aria-label',preferences.language==='it'?'Destra':'Right');
   document.querySelector('.dialog-heading button').setAttribute('aria-label',t('close'));
@@ -95,7 +95,10 @@ $('sound').onchange=e=>{preferences.sound=e.target.value==='on';save();translate
 $('difficulty').onchange=e=>{preferences.difficulty=e.target.value;state.difficulty=preferences.difficulty;state.maxHearts=preferences.difficulty==='relaxed'?5:3;state.hearts=Math.min(state.hearts,state.maxHearts);save();translate();};
 $('mute').onclick=()=>{preferences.sound=!preferences.sound;save();translate();};
 $('reset').onclick=()=>{if(window.confirm(t('resetAsk'))){preferences.worlds=defaults().worlds;selected=0;settingsResume=false;save();$('settings-dialog').close();menu();}};
-$('fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await $('game-shell').requestFullscreen();}catch(error){$('game-shell').scrollIntoView({behavior:'smooth'});}translate();};
+const fullscreenTarget=$('game-shell');
+const syncFullscreen=()=>{const active=!!document.fullscreenElement||fullscreenTarget.classList.contains('fullscreen-mode');fullscreenTarget.classList.toggle('fullscreen-mode',active);document.body.classList.toggle('fullscreen-mode',active);translate();};
+document.addEventListener('fullscreenchange',syncFullscreen);
+$('fullscreen').onclick=async()=>{const active=fullscreenTarget.classList.contains('fullscreen-mode');if(active){fullscreenTarget.classList.remove('fullscreen-mode');document.body.classList.remove('fullscreen-mode');if(document.fullscreenElement)try{await document.exitFullscreen();}catch(error){}return translate();}fullscreenTarget.classList.add('fullscreen-mode');document.body.classList.add('fullscreen-mode');if(fullscreenTarget.requestFullscreen)try{await fullscreenTarget.requestFullscreen();}catch(error){}translate();};
 const keyMap={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',Space:'jump',ArrowUp:'jump',KeyW:'jump',ShiftLeft:'run',ShiftRight:'run'};
 window.addEventListener('keydown',event=>{if($('settings-dialog').open)return;if(event.code==='Escape'&&playing){event.preventDefault();setPause(!paused);return;}if(playing&&!paused&&keyMap[event.code]){event.preventDefault();input[keyMap[event.code]]=true;}});
 window.addEventListener('keyup',event=>{if(keyMap[event.code])input[keyMap[event.code]]=false;});
