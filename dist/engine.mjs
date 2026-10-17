@@ -46,7 +46,7 @@ export function step(state,input={},dt=STEP){
   for(const item of state.level.items)if(!item.collected&&touches(p,item)){
     item.collected=true;
     if(item.kind==='star'){state.stars++;state.score+=100;state.events.push('star');}
-    else if(item.kind==='power'){state.power=12;state.score+=30;state.events.push('power');}
+    else if(item.kind==='power'){state.power=5;state.score+=30;state.events.push('power');}
     else{state.coins++;state.score+=10;state.events.push('coin');}
   }
   for(const enemy of state.level.enemies)if(!enemy.dead){
