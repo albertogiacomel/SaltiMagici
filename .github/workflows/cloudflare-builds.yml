@@ -1,0 +1,27 @@
+name: Audit Cloudflare build authentication
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout reviewed read-only auditor
+        uses: actions/checkout@v7
+        with:
+          repository: albertogiacomel/AgentPippo
+          ref: 7b3303bc6790c0fe493e403afbf2e86493a13aab
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - name: Read Worker build authentication metadata
+        run: node scripts/cloudflare_builds_audit.mjs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: cloudflare-build-authentication
+          path: artifacts/cloudflare-builds/audit.json
+          if-no-files-found: error
