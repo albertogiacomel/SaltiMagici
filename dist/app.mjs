@@ -1,3 +1,5 @@
+import {GameUIController} from './shared/videogames-kit/src/integration.mjs';
+import {InputManager} from './shared/videogames-kit/src/input.mjs';
 import {createGame,step,serialize,STEP} from './engine.mjs';
 import {Renderer} from './renderer.mjs';
 import {messages,levelNames} from './i18n.mjs';
@@ -20,21 +22,24 @@ try{
 if(!['classic','elsa'].includes(preferences.theme))preferences.theme='classic';
 if(!['it','en'].includes(preferences.language))preferences.language='it';
 if(!['relaxed','normal'].includes(preferences.difficulty))preferences.difficulty='relaxed';
-const input={left:false,right:false,jump:false,run:false};let gpJumpWas=false;
-let state=createGame(0,preferences.difficulty),selected=0,playing=false,paused=false,ready=false,renderer,audio,toastTimer,settingsResume=false;
+const inputManager=new InputManager();let gpJumpWas=false;
+let state=createGame(0,preferences.difficulty),selected=0,playing=false,paused=false,ready=false,renderer,toastTimer,settingsResume=false;
 const t=key=>messages[preferences.language][key]||key;
 const world=()=>preferences.worlds[preferences.theme];
 const levelName=index=>levelNames[preferences.language][preferences.theme][index];
+const oldSettingsButton=$('settings');
+const kit=new GameUIController({gameId:'salti-magici',mount:oldSettingsButton.parentElement,
+ onOpen:()=>{inputManager.setEnabled(false);settingsResume=playing&&!paused&&!state.finished;if(settingsResume)setPause(true);},
+ onClose:()=>{inputManager.setEnabled(true);if(settingsResume)setPause(false);settingsResume=false;}});
+oldSettingsButton.remove();kit.settingsButton.id='settings';kit.dialog.element.id='settings-dialog';
+for(const key of ['language','difficulty'])kit.dialog.element.querySelector('[data-setting='+key+']').id=key;
+const resetButton=document.createElement('button');resetButton.type='button';resetButton.id='reset';resetButton.className='ag-button ag-button--danger';resetButton.dataset.i18n='reset';kit.dialog.element.append(resetButton);
 function save(){try{localStorage.setItem(KEY,JSON.stringify(preferences));}catch(error){if(storageAvailable)notify('storage');storageAvailable=false;document.documentElement.dataset.storage='memory';}}
-function clearInput(){for(const key of Object.keys(input))input[key]=false;document.querySelectorAll('[data-control]').forEach(b=>b.classList.remove('pressed'));}
+function clearInput(){inputManager.clear();}
 function tone(kind){
-  if(!preferences.sound)return;
-  try{
-    audio??=new (window.AudioContext||window.webkitAudioContext)();
-    if(audio.state==='suspended')audio.resume().catch(()=>{preferences.sound=false;save();translate();});
-    const notes={jump:[360,540],coin:[800,1050],star:[650,820,1100],power:[500,630,840],checkpoint:[600,900],stomp:[270,420],hurt:[220,160],finish:[520,650,780,1040],retry:[330,440],shield:[600,400]}[kind]||[500];
-    notes.forEach((frequency,i)=>{const oscillator=audio.createOscillator(),gain=audio.createGain(),at=audio.currentTime+i*.065;oscillator.type='sine';oscillator.frequency.setValueAtTime(frequency,at);gain.gain.setValueAtTime(0,at);gain.gain.linearRampToValueAtTime(.045,at+.01);gain.gain.exponentialRampToValueAtTime(.001,at+.14);oscillator.connect(gain).connect(audio.destination);oscillator.start(at);oscillator.stop(at+.15);});
-  }catch(error){preferences.sound=false;save();$('mute').textContent='♪';}
+ if(!preferences.sound||!kit.settings.getSnapshot().effects)return;
+ const notes={jump:[360,540],coin:[800,1050],star:[650,820,1100],power:[500,630,840],checkpoint:[600,900],stomp:[270,420],hurt:[220,160],finish:[520,650,780,1040],retry:[330,440],shield:[600,400]}[kind]||[500];
+ kit.audio.tone({frequencies:notes,spacing:.065,duration:.15,volume:.045});
 }
 function notify(key){clearTimeout(toastTimer);$('toast').dataset.message=key;$('toast').textContent=t(key);$('toast').hidden=false;toastTimer=setTimeout(()=>{$('toast').hidden=true;},TOAST_DURATION);}
 function updateHud(){
@@ -61,9 +66,7 @@ function translate(){
   $('pause').setAttribute('aria-label',t('pause'));$('fullscreen').setAttribute('aria-label',t((document.fullscreenElement||document.body.classList.contains('fullscreen-mode'))?'exitFullscreen':'fullscreen'));$('game').setAttribute('aria-label',t('access'));
   $('world-picker').setAttribute('aria-label',preferences.language==='it'?'Mondi':'Worlds');
   document.querySelector('[data-control=left]').setAttribute('aria-label',preferences.language==='it'?'Sinistra':'Left');document.querySelector('[data-control=right]').setAttribute('aria-label',preferences.language==='it'?'Destra':'Right');
-  document.querySelector('.dialog-heading button').setAttribute('aria-label',t('close'));
   document.querySelectorAll('[data-world]').forEach(button=>{button.classList.toggle('selected',button.dataset.world===preferences.theme);button.setAttribute('aria-pressed',String(button.dataset.world===preferences.theme));});
-  $('language').value=preferences.language;$('sound').value=preferences.sound?'on':'off';$('difficulty').value=preferences.difficulty;
   $('continue').hidden=!world().resume;
   if(!$('toast').hidden)$('toast').textContent=t($('toast').dataset.message);
   if(state.finished)finishLabels();levelCards();updateHud();
@@ -71,7 +74,11 @@ function translate(){
 let musicTimer=null,musicPowered=false;
 const musicTracks={classic:[261.63,329.63,392.00,329.63,261.63,293.66,329.63,261.63],classicPower:[523.25,659.25,783.99,659.25,523.25,587.33,659.25,523.25],elsa:[220.00,261.63,329.63,261.63,220.00,196.00,220.00,174.61],elsaPower:[329.63,392.00,493.88,392.00,329.63,293.66,329.63,246.94]};
 function stopMusic(){if(musicTimer){clearTimeout(musicTimer);musicTimer=null;}}
-function playMusic(){if(!preferences.sound||!playing||paused)return;stopMusic();audio??=new (window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume().catch(()=>{});const key=preferences.theme+(state.power>0?'Power':'');const track=musicTracks[key]||musicTracks[preferences.theme]||musicTracks.classic;musicPowered=state.power>0;let i=0;const stepNote=()=>{if(!playing||paused||!preferences.sound){musicTimer=null;return;}const freq=track[i%track.length];const osc=audio.createOscillator(),gain=audio.createGain();osc.type='square';osc.frequency.value=freq;gain.gain.setValueAtTime(0.025,audio.currentTime);gain.gain.exponentialRampToValueAtTime(0.0001,audio.currentTime+0.22);osc.connect(gain).connect(audio.destination);osc.start();osc.stop(audio.currentTime+0.24);i++;musicTimer=setTimeout(stepNote,250);};stepNote();}
+function playMusic(){
+ if(!preferences.sound||!kit.settings.getSnapshot().music||!playing||paused)return;
+ stopMusic();const key=preferences.theme+(state.power>0?'Power':'');const track=musicTracks[key]||musicTracks.classic;musicPowered=state.power>0;let i=0;
+ const note=()=>{if(!playing||paused||!preferences.sound||!kit.settings.getSnapshot().music){musicTimer=null;return;}kit.audio.tone({frequencies:[track[i%track.length]],channel:'music',duration:.24,volume:.025,wave:'square'});i++;musicTimer=setTimeout(note,250);};note();
+}
 function start(resume=false){
   if(!ready)return;
   const snapshot=resume?world().resume:null;if(snapshot)selected=snapshot.level;
@@ -93,29 +100,22 @@ function finish(){
 $('play').onclick=()=>start();$('continue').onclick=()=>start(true);$('pause').onclick=()=>setPause(!paused);$('resume').onclick=()=>setPause(false);$('restart').onclick=()=>start();$('to-menu').onclick=menu;$('finish-menu').onclick=menu;
 $('next').onclick=()=>{selected=selected===2?0:selected+1;start();};
 document.querySelectorAll('[data-world]').forEach(button=>button.onclick=()=>{preferences.theme=button.dataset.world;selected=0;state=createGame(0,preferences.difficulty);if(renderer)renderer.camera=0;save();translate();});
-$('settings').onclick=()=>{settingsResume=playing&&!paused&&!state.finished;if(settingsResume)setPause(true);$('settings-dialog').showModal();};
-$('settings-dialog').addEventListener('close',()=>{if(settingsResume)setPause(false);settingsResume=false;});
-$('language').onchange=e=>{preferences.language=e.target.value;save();translate();};
-$('sound').onchange=e=>{preferences.sound=e.target.value==='on';save();translate();if(!preferences.sound)stopMusic();else if(playing&&!paused)playMusic();};
-$('difficulty').onchange=e=>{preferences.difficulty=e.target.value;state.difficulty=preferences.difficulty;state.maxHearts=preferences.difficulty==='relaxed'?5:3;state.hearts=Math.min(state.hearts,state.maxHearts);save();translate();};
-$('mute').onclick=()=>{preferences.sound=!preferences.sound;save();translate();};
+function applyKitSettings(){
+ const value=kit.settings.getSnapshot();preferences.language=value.language;preferences.sound=!value.muted&&(value.effects||value.music);preferences.difficulty=value.difficulty;
+ state.difficulty=value.difficulty;state.maxHearts=value.difficulty==='relaxed'?5:3;state.hearts=Math.min(state.hearts,state.maxHearts);
+ save();translate();stopMusic();if(playing&&!paused)playMusic();
+}
+kit.settings.subscribe(applyKitSettings);
+$('mute').onclick=()=>kit.settings.update({muted:!kit.settings.getSnapshot().muted});
 $('reset').onclick=()=>{if(window.confirm(t('resetAsk'))){preferences.worlds=defaults().worlds;selected=0;settingsResume=false;save();$('settings-dialog').close();menu();}};
-const fullscreenTarget=$('game-shell');
-const syncFullscreen=()=>{const active=!!document.fullscreenElement||fullscreenTarget.classList.contains('fullscreen-mode');fullscreenTarget.classList.toggle('fullscreen-mode',active);document.body.classList.toggle('fullscreen-mode',active);translate();};
-document.addEventListener('fullscreenchange',syncFullscreen);
-$('fullscreen').onclick=async()=>{const active=fullscreenTarget.classList.contains('fullscreen-mode');if(active){fullscreenTarget.classList.remove('fullscreen-mode');document.body.classList.remove('fullscreen-mode');if(document.fullscreenElement)try{await document.exitFullscreen();}catch(error){}return translate();}fullscreenTarget.classList.add('fullscreen-mode');document.body.classList.add('fullscreen-mode');if(fullscreenTarget.requestFullscreen)try{await fullscreenTarget.requestFullscreen();}catch(error){}translate();};
-const keyMap={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',Space:'jump',ArrowUp:'jump',KeyW:'jump',ShiftLeft:'run',ShiftRight:'run'};
-window.addEventListener('keydown',event=>{if($('settings-dialog').open)return;if(event.code==='Escape'&&playing){event.preventDefault();setPause(!paused);return;}if(playing&&!paused&&keyMap[event.code]){event.preventDefault();input[keyMap[event.code]]=true;}});
-window.addEventListener('keyup',event=>{if(keyMap[event.code])input[keyMap[event.code]]=false;});
-document.querySelectorAll('[data-control]').forEach(button=>{
-  const release=()=>{input[button.dataset.control]=false;button.classList.remove('pressed');};
-  button.addEventListener('pointerdown',event=>{event.preventDefault();if(!playing||paused||state.finished)return;button.setPointerCapture(event.pointerId);input[button.dataset.control]=true;button.classList.add('pressed');});
-  for(const name of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(name,release);
-});
+kit.fullscreen.subscribe(active=>{document.body.classList.toggle('fullscreen-mode',active);$('game-shell').classList.toggle('fullscreen-mode',active);translate();});
+$('fullscreen').onclick=()=>kit.fullscreen.toggle().catch(error=>console.error('Fullscreen:',error));
+window.addEventListener('keydown',event=>{if(kit.dialog.element.open)return;if(event.code==='Escape'&&playing){event.preventDefault();setPause(!paused);}});
+for(const button of document.querySelectorAll('[data-control]'))inputManager.bindButton(button,button.dataset.control);
 window.addEventListener('blur',()=>{clearInput();if(playing&&!paused)setPause(true);});
 document.addEventListener('visibilitychange',()=>{if(document.hidden){clearInput();if(playing&&!paused)setPause(true);}});
 window.addEventListener('pagehide',()=>{if(playing&&!state.finished){world().resume=serialize(state);save();}});
-function gamepadInput(){const pads=navigator.getGamepads?navigator.getGamepads():[];let left=false,right=false,jump=false,run=false,start=false;for(const pad of pads){if(!pad)continue;const ax=pad.axes&&pad.axes[0]?pad.axes[0]:0;if(ax<-0.35)left=true;if(ax>0.35)right=true;if(pad.buttons&&pad.buttons[14]&&pad.buttons[14].pressed)left=true;if(pad.buttons&&pad.buttons[15]&&pad.buttons[15].pressed)right=true;if(pad.buttons&&pad.buttons[0]&&pad.buttons[0].pressed)jump=true;if(pad.buttons&&( (pad.buttons[1]&&pad.buttons[1].pressed)||(pad.buttons[7]&&pad.buttons[7].pressed)))run=true;if(pad.buttons&&pad.buttons[9]&&pad.buttons[9].pressed)start=true;}return {left,right,jump,run,start};}
+function gamepadInput(){const value=inputManager.poll();return {...value,start:value.pause};}
 let previous=0,accumulator=0,hudTick=0;
 function frame(timestamp){
   const dt=Math.min(.1,(timestamp-previous)/1000||0);previous=timestamp;
@@ -126,14 +126,14 @@ function frame(timestamp){
   }
   gpJumpWas=gp.start;
   if(playing&&!paused&&!state.finished){
-    const frameInput={left:input.left||gp.left,right:input.right||gp.right,jump:input.jump||gp.jump,run:input.run||gp.run};
+    const frameInput=inputManager.poll();
     accumulator+=dt;while(accumulator>=STEP){step(state,frameInput);accumulator-=STEP;}    if(preferences.sound && (state.power>0)!==musicPowered){musicPowered=state.power>0;playMusic();}
     for(const event of state.events.splice(0)){tone(event);if(event==='finish')finish();else if(event==='checkpoint'){world().resume=serialize(state);save();notify('checkpoint');}else if(event==='power')notify(preferences.theme==='elsa'?'powerElsa':'powerClassic');else if(['hurt','retry','shield'].includes(event)){notify(event);if(renderer)renderer.camera=Math.max(0,state.player.x-CAMERA_OFFSET);}}
   }else{accumulator=0;if(!playing)state.time+=dt;}
   renderer.draw(state,preferences.theme,!playing);hudTick+=dt;if(hudTick>.1){updateHud();hudTick=0;}requestAnimationFrame(frame);
 }
-translate();
+applyKitSettings();
 const worlds=new Image();worlds.onload=()=>{renderer=new Renderer($('game'),worlds);ready=true;$('play').disabled=false;translate();requestAnimationFrame(frame);};
 worlds.onerror=()=>{$('play').textContent=t('loadError');};worlds.src='assets/worlds.webp';
 // Read-only snapshot supports smoke tests and accessibility/debug diagnostics.
-Object.defineProperty(window,'SaltiMagici',{value:{getState:()=>({level:selected,theme:preferences.theme,language:preferences.language,playing,paused,ready,player:{...state.player},coins:state.coins,stars:state.stars,finished:state.finished,checkpoint:state.checkpoint,unlocked:world().unlocked}),getInput:()=>({...input})}});
+Object.defineProperty(window,'SaltiMagici',{value:{getState:()=>({level:selected,theme:preferences.theme,language:preferences.language,playing,paused,ready,player:{...state.player},coins:state.coins,stars:state.stars,finished:state.finished,checkpoint:state.checkpoint,unlocked:world().unlocked}),getInput:()=>inputManager.poll()}});

@@ -3,11 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "build": "node scripts/build.mjs",
+    "build": "node scripts/game-kit-check.mjs && node scripts/build.mjs",
     "test": "node --test scripts/game_test.mjs",
     "test:browser": "node scripts/browser_test.cjs",
-    "benchmark": "node scripts/benchmark.mjs"
+    "benchmark": "node scripts/benchmark.mjs",
+    "check:kit": "node scripts/game-kit-check.mjs",
+    "test:kit": "node --test scripts/game-kit-test.mjs",
+    "test:kit:browser": "node scripts/game-kit-browser-test.mjs"
   }
 }

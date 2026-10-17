@@ -6,10 +6,14 @@ import {spawnSync} from 'node:child_process';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 await copyFile(join(root,'vendor/LICENSE.tiny_platformer'),join(root,'dist/LICENSE.txt'));
 const files=[];
-for(const entry of await readdir(join(root,'dist'),{withFileTypes:true})){
-  if(entry.isFile())files.push(entry.name);
-  else if(entry.name==='assets')for(const asset of await readdir(join(root,'dist/assets')))files.push('assets/'+asset);
+async function collect(directory,prefix=''){
+ for(const entry of await readdir(directory,{withFileTypes:true})){
+  const name=prefix+entry.name;
+  if(entry.isFile())files.push(name);
+  else if(entry.isDirectory())await collect(join(directory,entry.name),name+'/');
+ }
 }
+await collect(join(root,'dist'));
 let bytes=0;
 for(const name of files){
   bytes+=(await stat(join(root,'dist',name))).size;

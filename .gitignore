@@ -4,3 +4,7 @@ artifacts/*
 .wrangler/
 .env*
 __pycache__/
+
+artifacts/
+
+.parcel-cache/

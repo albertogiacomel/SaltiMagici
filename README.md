@@ -1,3 +1,5 @@
+> Impostazioni e controlli condivisi: [integrazione Videogames Kit](docs/videogames-kit.md).
+
 # Salti Magici
 
 Platform a scorrimento per bambini, con tre livelli e due mondi selezionabili:
