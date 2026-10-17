@@ -1,0 +1,13 @@
+{
+  "name": "salti-magici",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test scripts/game_test.mjs",
+    "test:browser": "node scripts/browser_test.cjs",
+    "benchmark": "node scripts/benchmark.mjs"
+  }
+}

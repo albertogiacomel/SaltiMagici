@@ -1,0 +1,50 @@
+name: Verify and publish Salti Magici
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+      - run: npm run benchmark
+      - name: Verify in Chrome
+        env:
+          BROWSER_BINARY: /usr/bin/google-chrome
+        run: npm run test:browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verification
+          path: |
+            artifacts/*.json
+            artifacts/*.png
+  deploy:
+    needs: verify
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: salti-magici-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm run build
+      - name: Publish independent Pages project
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: '291702df5c8eef8684918f4f92ca4c4d'
+        run: npx --yes wrangler@4.149.0 pages deploy dist --project-name salti-magici --branch main --commit-hash "$GITHUB_SHA"
+      - name: Verify published game
+        env:
+          GAME_URL: https://salti-magici.pages.dev
+          BROWSER_BINARY: /usr/bin/google-chrome
+        run: npm run test:browser
