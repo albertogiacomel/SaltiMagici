@@ -21,7 +21,7 @@ function reward(c,x,y,theme){
 // Resolution-independent character artwork. Limbs, braid and cape animate independently.
 export function character(c,x,feet,theme,time,moving=false,air=false,facing=1){
   c.save();c.translate(x,feet);c.scale(facing*1.18,1.18);
-  const stride=moving?Math.sin(time*14)*6:0,bob=moving?Math.abs(Math.sin(time*14))*1.5:Math.sin(time*2)*.5;
+  const stride=moving?Math.sin(time*14)*6:0,bob=moving?Math.abs(Math.sin(time*14))*1.5:0;
   c.translate(0,-bob);
   if(theme==='elsa'){
     path(c,p=>{p.moveTo(-10,-36);p.bezierCurveTo(-25,-27,-23+stride*.3,-6,-28,0);p.quadraticCurveTo(-2,5,8,-4);p.lineTo(8,-33);},'#d5f4ffb8','#8fc8e4');
