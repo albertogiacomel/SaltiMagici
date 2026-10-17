@@ -1,5 +1,6 @@
 import {bound,touches,move} from './physics.mjs';
 import {makeLevel,GROUND} from './levels.mjs';
+import {POWER_DURATION,BACKTRACK_MARGIN} from './config.mjs';
 export const STEP=1/60;
 export function createGame(index=0,difficulty='relaxed',snapshot=null){
   const level=makeLevel(index),maxHearts=difficulty==='relaxed'?5:3;
@@ -41,12 +42,12 @@ export function step(state,input={},dt=STEP){
     if(box.kind==='box'&&!box.used){box.used=true;state.level.items.push({id:`power-${box.id}`,x:box.x+8,y:box.y-40,w:28,h:28,kind:'power',collected:false});}
   });
   state.furthestX=Math.max(state.furthestX,p.x);
-  p.x=bound(p.x,Math.max(0,state.checkpoint-96,state.furthestX-200),state.level.width-p.w);
+  p.x=bound(p.x,Math.max(0,state.checkpoint-96,state.furthestX-BACKTRACK_MARGIN),state.level.width-p.w);
   if(p.y>650){hurt(state,true);return;}
   for(const item of state.level.items)if(!item.collected&&touches(p,item)){
     item.collected=true;
     if(item.kind==='star'){state.stars++;state.score+=100;state.events.push('star');}
-    else if(item.kind==='power'){state.power=5;state.score+=30;state.events.push('power');}
+    else if(item.kind==='power'){state.power=POWER_DURATION;state.score+=30;state.events.push('power');}
     else{state.coins++;state.score+=10;state.events.push('coin');}
   }
   for(const enemy of state.level.enemies)if(!enemy.dead){

@@ -1,6 +1,7 @@
 import {createGame,step,serialize,STEP} from './engine.mjs';
 import {Renderer} from './renderer.mjs';
 import {messages,levelNames} from './i18n.mjs';
+import {CAMERA_OFFSET,TOAST_DURATION} from './config.mjs';
 const $=id=>document.getElementById(id),KEY='salti_magici_v1';
 const defaults=()=>({version:1,theme:'classic',language:'it',sound:true,difficulty:'relaxed',worlds:{classic:{unlocked:1,best:[null,null,null],resume:null},elsa:{unlocked:1,best:[null,null,null],resume:null}}});
 let preferences=defaults(),storageAvailable=true;
@@ -35,7 +36,7 @@ function tone(kind){
     notes.forEach((frequency,i)=>{const oscillator=audio.createOscillator(),gain=audio.createGain(),at=audio.currentTime+i*.065;oscillator.type='sine';oscillator.frequency.setValueAtTime(frequency,at);gain.gain.setValueAtTime(0,at);gain.gain.linearRampToValueAtTime(.045,at+.01);gain.gain.exponentialRampToValueAtTime(.001,at+.14);oscillator.connect(gain).connect(audio.destination);oscillator.start(at);oscillator.stop(at+.15);});
   }catch(error){preferences.sound=false;save();$('mute').textContent='♪';}
 }
-function notify(key){clearTimeout(toastTimer);$('toast').dataset.message=key;$('toast').textContent=t(key);$('toast').hidden=false;toastTimer=setTimeout(()=>{$('toast').hidden=true;},1500);}
+function notify(key){clearTimeout(toastTimer);$('toast').dataset.message=key;$('toast').textContent=t(key);$('toast').hidden=false;toastTimer=setTimeout(()=>{$('toast').hidden=true;},TOAST_DURATION);}
 function updateHud(){
   $('hearts').textContent='♥ '.repeat(state.hearts).trim();$('hearts').setAttribute('aria-label',`${t('hearts')}: ${state.hearts}`);
   $('collectibles').textContent=`${preferences.theme==='elsa'?'✿':'●'} ${state.coins}`;$('collectibles').setAttribute('aria-label',`${t(preferences.theme==='elsa'?'flowers':'coins')}: ${state.coins}`);
@@ -74,7 +75,7 @@ function playMusic(){if(!preferences.sound||!playing||paused)return;stopMusic();
 function start(resume=false){
   if(!ready)return;
   const snapshot=resume?world().resume:null;if(snapshot)selected=snapshot.level;
-  state=createGame(selected,preferences.difficulty,snapshot);playing=true;paused=false;clearInput();renderer.camera=Math.max(0,state.player.x-414);
+  state=createGame(selected,preferences.difficulty,snapshot);playing=true;paused=false;clearInput();renderer.camera=Math.max(0,state.player.x-CAMERA_OFFSET);
   document.body.classList.add('playing');$('start-overlay').hidden=true;$('pause-overlay').hidden=true;$('finish-overlay').hidden=true;$('hud').hidden=false;$('pause').disabled=false;
   world().resume=serialize(state);save();translate();$('game').focus({preventScroll:true});$('game-shell').scrollIntoView({behavior:'instant',block:'start'});
   if(!storageAvailable)notify('storage');tone('checkpoint');playMusic();
@@ -127,7 +128,7 @@ function frame(timestamp){
   if(playing&&!paused&&!state.finished){
     const frameInput={left:input.left||gp.left,right:input.right||gp.right,jump:input.jump||gp.jump,run:input.run||gp.run};
     accumulator+=dt;while(accumulator>=STEP){step(state,frameInput);accumulator-=STEP;}    if(preferences.sound && (state.power>0)!==musicPowered){musicPowered=state.power>0;playMusic();}
-    for(const event of state.events.splice(0)){tone(event);if(event==='finish')finish();else if(event==='checkpoint'){world().resume=serialize(state);save();notify('checkpoint');}else if(event==='power')notify(preferences.theme==='elsa'?'powerElsa':'powerClassic');else if(['hurt','retry','shield'].includes(event)){notify(event);if(renderer)renderer.camera=Math.max(0,state.player.x-414);}}
+    for(const event of state.events.splice(0)){tone(event);if(event==='finish')finish();else if(event==='checkpoint'){world().resume=serialize(state);save();notify('checkpoint');}else if(event==='power')notify(preferences.theme==='elsa'?'powerElsa':'powerClassic');else if(['hurt','retry','shield'].includes(event)){notify(event);if(renderer)renderer.camera=Math.max(0,state.player.x-CAMERA_OFFSET);}}
   }else{accumulator=0;if(!playing)state.time+=dt;}
   renderer.draw(state,preferences.theme,!playing);hudTick+=dt;if(hudTick>.1){updateHud();hudTick=0;}requestAnimationFrame(frame);
 }
