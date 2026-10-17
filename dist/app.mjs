@@ -35,7 +35,7 @@ function tone(kind){
     notes.forEach((frequency,i)=>{const oscillator=audio.createOscillator(),gain=audio.createGain(),at=audio.currentTime+i*.065;oscillator.type='sine';oscillator.frequency.setValueAtTime(frequency,at);gain.gain.setValueAtTime(0,at);gain.gain.linearRampToValueAtTime(.045,at+.01);gain.gain.exponentialRampToValueAtTime(.001,at+.14);oscillator.connect(gain).connect(audio.destination);oscillator.start(at);oscillator.stop(at+.15);});
   }catch(error){preferences.sound=false;save();$('mute').textContent='♪';}
 }
-function notify(key){clearTimeout(toastTimer);$('toast').dataset.message=key;$('toast').textContent=t(key);$('toast').hidden=false;toastTimer=setTimeout(()=>{$('toast').hidden=true;},2600);}
+function notify(key){clearTimeout(toastTimer);$('toast').dataset.message=key;$('toast').textContent=t(key);$('toast').hidden=false;toastTimer=setTimeout(()=>{$('toast').hidden=true;},1500);}
 function updateHud(){
   $('hearts').textContent='♥ '.repeat(state.hearts).trim();$('hearts').setAttribute('aria-label',`${t('hearts')}: ${state.hearts}`);
   $('collectibles').textContent=`${preferences.theme==='elsa'?'✿':'●'} ${state.coins}`;$('collectibles').setAttribute('aria-label',`${t(preferences.theme==='elsa'?'flowers':'coins')}: ${state.coins}`);
