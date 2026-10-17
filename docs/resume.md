@@ -9,8 +9,8 @@ Nuovo repository `albertogiacomel/SaltiMagici`, nuova pubblicazione Cloudflare P
 1. Consultare SSOT/KB/CBMM e cercare codice riutilizzabile con licenza: eseguito.
 2. Realizzare fisica, tre livelli, due temi, grafica, IT/EN, impostazioni e salvataggi: eseguito.
 3. Verificare completabilità, browser desktop/touch e budget: eseguito localmente; risultati in artifacts.
-4. Creare repository e pubblicazione separati, configurare secret cifrato, verificare CI e sito live.
-5. Aggiungere la scheda bilingue al portfolio, verificare deploy, registrare chiusura nella KB.
+4. Creare repository e pubblicazione separati, configurare secret cifrato, verificare CI e sito live: repository creato e pushato su `main`; CI avviata su GitHub Actions; secret Cloudflare da configurare nel repository se non presente; sito live da verificare al completamento deploy.
+5. Aggiungere la scheda bilingue al portfolio, verificare deploy, registrare chiusura nella KB: scheda aggiunta in `contents/hobbies.ts` e immagine `public/images/experiments/salti_magici.webp`; build/lint/test website OK; commit e push eseguiti.
 
 ## Contratti
 
