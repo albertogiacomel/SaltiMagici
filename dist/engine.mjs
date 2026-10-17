@@ -20,7 +20,7 @@ export function hurt(state,pit=false){
   const p=state.player;if(p.invincible>0&&!pit)return;
   if(state.power>0&&!pit){state.power=0;p.invincible=2;state.events.push('shield');return;}
   state.hearts--;if(state.hearts<=0){state.hearts=state.maxHearts;state.events.push('retry');}else state.events.push('hurt');
-  p.x=state.checkpoint;p.y=GROUND-p.h;p.vx=0;p.vy=0;p.invincible=2;state.jumpBuffer=0;
+  p.x=state.checkpoint;p.y=GROUND-p.h;p.vx=0;p.vy=0;p.grounded=true;p.invincible=2;state.jumpBuffer=0;
 }
 export function step(state,input={},dt=STEP){
   if(state.finished)return;

@@ -115,7 +115,7 @@ function frame(timestamp){
   const dt=Math.min(.1,(timestamp-previous)/1000||0);previous=timestamp;
   if(playing&&!paused&&!state.finished){
     accumulator+=dt;while(accumulator>=STEP){step(state,input);accumulator-=STEP;}
-    for(const event of state.events.splice(0)){tone(event);if(event==='finish')finish();else if(event==='checkpoint'){world().resume=serialize(state);save();notify('checkpoint');}else if(event==='power')notify(preferences.theme==='elsa'?'powerElsa':'powerClassic');else if(['hurt','retry','shield'].includes(event))notify(event);}
+    for(const event of state.events.splice(0)){tone(event);if(event==='finish')finish();else if(event==='checkpoint'){world().resume=serialize(state);save();notify('checkpoint');}else if(event==='power')notify(preferences.theme==='elsa'?'powerElsa':'powerClassic');else if(['hurt','retry','shield'].includes(event)){notify(event);if(renderer)renderer.camera=Math.max(0,state.player.x-270);}}
   }else{accumulator=0;if(!playing)state.time+=dt;}
   renderer.draw(state,preferences.theme,!playing);hudTick+=dt;if(hudTick>.1){updateHud();hudTick=0;}requestAnimationFrame(frame);
 }
