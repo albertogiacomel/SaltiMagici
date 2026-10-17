@@ -5,7 +5,7 @@
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 .fullscreen-mode .topbar,.fullscreen-mode footer{display:none}
 .fullscreen-mode main{padding:0;max-width:none}
-.fullscreen-mode .game-shell{border-radius:0;border:0;box-shadow:none;display:flex;flex-direction:column;background:#172d35;justify-content:center;height:100dvh;width:100vw;position:fixed;inset:0;z-index:9999}
+.fullscreen-mode .game-shell{border-radius:0;border:0;box-shadow:none;display:flex;flex-direction:column;background:#172d35;justify-content:center;height:100vh;height:100dvh;width:100vw;position:fixed;inset:0;z-index:9999}
 .fullscreen-mode .stage{max-height:calc(100dvh - 70px);aspect-ratio:16/9;width:auto;max-width:100%;margin:auto}
 .fullscreen-mode .game-bar,.fullscreen-mode .touch-controls{background:#fff}
 .fullscreen-mode .keyboard-guide{display:none}
