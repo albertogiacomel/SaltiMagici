@@ -26,10 +26,12 @@ async function run(){
  assert.equal(await evaluate("document.querySelectorAll('.level-card:disabled').length"),2);
  await shot('classic_menu');await click('[data-world="elsa"]');await shot('elsa_menu');
  await click('#settings');await select('language','en');assert.equal(await evaluate("document.documentElement.lang"),'en');assert.equal(await evaluate("document.querySelector('[data-i18n=jump]').textContent"),'Jump');
- await evaluate("(()=>{const e=document.querySelector('[data-setting=muted]');e.checked=true;e.dispatchEvent(new Event('change',{bubbles:true}));})()");await select('difficulty','normal');await evaluate("document.getElementById('settings-dialog').close()");
+ await evaluate("(()=>{const e=document.querySelector('[data-setting=muted]');e.checked=true;e.dispatchEvent(new Event('change',{bubbles:true}));})()");await select('difficulty','normal');
+ // close() queues the native close event; wait for its input/focus cleanup before playing.
+ await evaluate("new Promise(resolve=>{const dialog=document.getElementById('settings-dialog');dialog.addEventListener('close',resolve,{once:true});dialog.close();})");
  await click('#play');await wait('SaltiMagici.getState().playing&&!SaltiMagici.getState().paused');
  assert.equal(await evaluate("document.getElementById('hearts').getAttribute('aria-label')"),'Hearts: 3');
- const before=await evaluate('SaltiMagici.getState().player.x');await key('keyDown','ArrowRight','ArrowRight');await delay(450);await key('keyDown','Space',' ');await delay(250);await key('keyUp','Space',' ');await key('keyUp','ArrowRight','ArrowRight');
+ const before=await evaluate('SaltiMagici.getState().player.x');await key('keyDown','ArrowRight','ArrowRight');assert.equal(await evaluate('SaltiMagici.getInput().right'),true,'Keyboard input enabled after settings close');await delay(450);await key('keyDown','Space',' ');await delay(250);await key('keyUp','Space',' ');await key('keyUp','ArrowRight','ArrowRight');
  assert.ok(await evaluate('SaltiMagici.getState().player.x')>before+40,'Keyboard moves player');
  await shot('elsa_play');
  // Save a canvas capture for the portfolio card without external image assets.
