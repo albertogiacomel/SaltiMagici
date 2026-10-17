@@ -25,8 +25,8 @@ export function character(c,x,feet,theme,time,moving=false,air=false,facing=1){
   c.translate(0,-bob);
   if(theme==='elsa'){
     path(c,p=>{p.moveTo(-10,-36);p.bezierCurveTo(-25,-27,-23+stride*.3,-6,-28,0);p.quadraticCurveTo(-2,5,8,-4);p.lineTo(8,-33);},'#d5f4ffb8','#8fc8e4');
-    c.save();c.translate(-5,-4);c.rotate(stride*.04);rounded(c,-4,0,13,5,3,'#a1d9f2');c.restore();
-    c.save();c.translate(5,-4);c.rotate(-stride*.04);rounded(c,-3,0,12,5,3,'#a1d9f2');c.restore();
+    rounded(c,-9,-4,13,5,3,'#a1d9f2');
+    rounded(c,-2,-4,12,5,3,'#a1d9f2');
     path(c,p=>{p.moveTo(-8,-36);p.quadraticCurveTo(-13,-19,-19-stride*.3,-3);p.quadraticCurveTo(0,3,17,-3);p.quadraticCurveTo(7,-24,8,-36);p.closePath();},'#69cce4','#378eb7');
     path(c,p=>{p.moveTo(1,-34);p.quadraticCurveTo(-4,-15,-8,-1);p.lineTo(11,-3);p.quadraticCurveTo(4,-18,4,-34);},'#a2e7f2');
     rounded(c,-9,-38,17,17,4,'#47b6d6');
