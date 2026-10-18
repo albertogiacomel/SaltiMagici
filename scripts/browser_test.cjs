@@ -5,7 +5,7 @@ const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 let pageSession,command,errors=[];
 async function run(){
  fs.mkdirSync(artifacts,{recursive:true});
- const {openBrowser}=await import('./game-kit-cdp.mjs');
+ const {openBrowser}=await import('./game-kit-cdp.js');
  pageSession=await openBrowser(path.join(root,'dist'),{entry:'/index.html',artifactsPath:artifacts,blockRemoteAI:true});
  command=pageSession.command;errors=pageSession.errors;
  const url=process.env.GAME_URL||pageSession.url;

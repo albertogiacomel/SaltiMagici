@@ -1,6 +1,6 @@
-import {bound,touches,move} from './physics.mjs';
-import {makeLevel,GROUND} from './levels.mjs';
-import {POWER_DURATION,BACKTRACK_MARGIN,COLLECTIBLE_APPROACH} from './config.mjs';
+import {bound,touches,move} from './physics.js';
+import {makeLevel,GROUND} from './levels.js';
+import {POWER_DURATION,BACKTRACK_MARGIN,COLLECTIBLE_APPROACH} from './config.js';
 export const STEP=1/60;
 export function backtrackLimit(state){
   let limit=Math.max(0,state.checkpoint-96,state.furthestX-BACKTRACK_MARGIN);

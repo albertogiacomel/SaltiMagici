@@ -1,9 +1,9 @@
-import {GameUIController} from './shared/videogames-kit/src/integration.mjs';
-import {InputManager} from './shared/videogames-kit/src/input.mjs';
-import {createGame,step,serialize,STEP} from './engine.mjs';
-import {Renderer} from './renderer.mjs';
-import {messages,levelNames} from './i18n.mjs';
-import {CAMERA_OFFSET,TOAST_DURATION} from './config.mjs';
+import {GameUIController} from './shared/videogames-kit/src/integration.js';
+import {InputManager} from './shared/videogames-kit/src/input.js';
+import {createGame,step,serialize,STEP} from './engine.js';
+import {Renderer} from './renderer.js';
+import {messages,levelNames} from './i18n.js';
+import {CAMERA_OFFSET,TOAST_DURATION} from './config.js';
 const $=id=>document.getElementById(id),KEY='salti_magici_v1';
 const defaults=()=>({version:1,theme:'classic',language:'it',sound:true,difficulty:'relaxed',worlds:{classic:{unlocked:1,best:[null,null,null],resume:null},elsa:{unlocked:1,best:[null,null,null],resume:null}}});
 let preferences=defaults(),storageAvailable=true;

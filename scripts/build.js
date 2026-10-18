@@ -3,7 +3,7 @@ import {resolve,join,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
-const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
+const root=resolve(dirname(import.meta.filename),'..');
 await copyFile(join(root,'vendor/LICENSE.tiny_platformer'),join(root,'dist/LICENSE.txt'));
 const files=[];
 async function collect(directory,prefix=''){
@@ -17,7 +17,7 @@ await collect(join(root,'dist'));
 let bytes=0;
 for(const name of files){
   bytes+=(await stat(join(root,'dist',name))).size;
-  if(name.endsWith('.mjs')){const result=spawnSync(process.execPath,['--check',join(root,'dist',name)],{encoding:'utf8'});if(result.status!==0)throw new Error(result.stderr);}
+  if(name.endsWith('.js')){const result=spawnSync(process.execPath,['--check',join(root,'dist',name)],{encoding:'utf8'});if(result.status!==0)throw new Error(result.stderr);}
 }
 if(bytes>1_400_000)throw new Error(`Static game exceeds 1.4 MB: ${bytes}`);
 const asset=await readFile(join(root,'dist/assets/worlds.webp'));

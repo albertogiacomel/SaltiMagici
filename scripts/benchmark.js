@@ -1,6 +1,6 @@
 import {performance} from 'node:perf_hooks';
 import {writeFile,mkdir} from 'node:fs/promises';
-import {createGame,step} from '../dist/engine.mjs';
+import {createGame,step} from '../dist/engine.js';
 const samples=[],iterations=600;
 for(let round=0;round<30;round++){
   const state=createGame(round%3),start=performance.now();

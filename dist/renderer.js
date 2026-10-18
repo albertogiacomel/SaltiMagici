@@ -1,6 +1,6 @@
-import {bound} from './physics.mjs';
-import {CAMERA_OFFSET} from './config.mjs';
-import {backtrackLimit} from './engine.mjs';
+import {bound} from './physics.js';
+import {CAMERA_OFFSET} from './config.js';
+import {backtrackLimit} from './engine.js';
 export const cameraTarget=(state,viewportWidth=960)=>bound(state.player.x-CAMERA_OFFSET,Math.max(0,Math.min(state.player.x,backtrackLimit(state))-CAMERA_OFFSET),Math.max(0,state.level.width-viewportWidth));
 const palette={classic:{ground:'#ba8051',edge:'#79ae5b',lip:'#b8d77b',brick:'#d9a066',shadow:'#986340',platform:'#f3d79a',sky:'#bde9ef'},elsa:{ground:'#9b9dc7',edge:'#e2efff',lip:'#fffaff',brick:'#b0b9e7',shadow:'#777dab',platform:'#d1d7f4',sky:'#dce1ff'}};
 const rounded=(c,x,y,w,h,r,fill)=>{c.fillStyle=fill;c.beginPath();c.roundRect(x,y,w,h,r);c.fill();};

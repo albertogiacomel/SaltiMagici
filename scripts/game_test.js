@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createGame,step,serialize,hurt,STEP,backtrackLimit} from '../dist/engine.mjs';
-import {cameraTarget} from '../dist/renderer.mjs';
-import {BACKTRACK_MARGIN,COLLECTIBLE_APPROACH,CAMERA_OFFSET} from '../dist/config.mjs';
-import {makeLevel,GROUND} from '../dist/levels.mjs';
-import {messages,levelNames} from '../dist/i18n.mjs';
-import {move,overlap} from '../dist/physics.mjs';
+import {createGame,step,serialize,hurt,STEP,backtrackLimit} from '../dist/engine.js';
+import {cameraTarget} from '../dist/renderer.js';
+import {BACKTRACK_MARGIN,COLLECTIBLE_APPROACH,CAMERA_OFFSET} from '../dist/config.js';
+import {makeLevel,GROUND} from '../dist/levels.js';
+import {messages,levelNames} from '../dist/i18n.js';
+import {move,overlap} from '../dist/physics.js';
 const ticks=(s,n,input={})=>{for(let i=0;i<n;i++)step(s,input);};
 test('both languages cover every UI label and level',()=>{assert.deepEqual(Object.keys(messages.it).sort(),Object.keys(messages.en).sort());for(const lang of ['it','en'])for(const theme of ['classic','elsa'])assert.equal(levelNames[lang][theme].length,3);});
 test('upstream AABB collision includes intersecting bodies, excludes separated bodies',()=>{assert.equal(overlap(0,0,10,10,9,2,10,10),true);assert.equal(overlap(0,0,10,10,10,2,10,10),false);});
