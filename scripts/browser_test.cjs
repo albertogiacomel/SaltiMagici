@@ -18,6 +18,13 @@ async function run(){
  const shot=async name=>{const result=await command('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.join(artifacts,name+'.png'),Buffer.from(result.data,'base64'));};
  const key=(type,code,key)=>command('Input.dispatchKeyEvent',{type,code,key,windowsVirtualKeyCode:key==='ArrowRight'?39:key==='ArrowLeft'?37:key===' '?32:0});
  await wait('window.SaltiMagici?.getState().ready'+(process.env.GAME_URL?'&&location.origin==='+JSON.stringify(new URL(url).origin):''));
+ // Choose no optional services before testing physical touch targets; keep that
+ // refusal across reloads, as a visitor can do without accepting advertising.
+ if(await evaluate('Boolean(window.SitePrivacy)')){
+  await evaluate('window.SitePrivacy.ready.then(()=>true)');
+  await evaluate("document.querySelector('#klaro .cn-decline')?.click()");
+  await wait("document.cookie.includes('giacomel_privacy_v1=')");
+ }
  assert.equal(await evaluate("document.querySelectorAll('.level-card:disabled').length"),2);
  await shot('classic_menu');await click('[data-world="elsa"]');await shot('elsa_menu');
  await click('#settings');await select('language','en');assert.equal(await evaluate("document.documentElement.lang"),'en');assert.equal(await evaluate("document.querySelector('[data-i18n=jump]').textContent"),'Jump');
