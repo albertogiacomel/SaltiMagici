@@ -17,3 +17,5 @@ UX 0.3.0: impostazioni raggruppate per argomento, messaggio sulle modifiche imme
 Allineamento: le select delle impostazioni hanno la stessa larghezza e la stessa colonna, indipendentemente dall’etichetta. I gruppi di schede usano colonne uguali con spaziatura comune; gli stati selezionati mantengono le dimensioni dei box. I test browser misurano i bordi e le larghezze su desktop e mobile.
 
 Tipografia 0.3.0: font di sistema condiviso, controlli a 16 px, etichette a 15 px e feedback a 14 px; titoli responsive e interlinea uniforme. Le dimensioni in rem rispettano le preferenze del browser. Nessun font aggiuntivo da scaricare.
+
+Il test browser nativo riusa il runner CDP del kit: avvio con diagnostica, attesa limitata e cleanup comune. La verifica online controlla anche l’origine della pagina per confermare la navigazione al sito pubblicato.
