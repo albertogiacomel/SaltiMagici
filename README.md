@@ -35,10 +35,10 @@ Il limite di ritorno dipende dall’avanzamento e dai checkpoint, ma si estende 
 
 ```mermaid
 flowchart LR
-  Input[Tastiera e touch] --> App[app.mjs: UI e salvataggi]
-  App --> Engine[engine.mjs: passo fisso 60 Hz]
-  Levels[levels.mjs: 3 percorsi] --> Engine
-  Engine --> Renderer[renderer.mjs: Canvas 2D]
+  Input[Tastiera e touch] --> App[app.js: UI e salvataggi]
+  App --> Engine[engine.js: passo fisso 60 Hz]
+  Levels[levels.js: 3 percorsi] --> Engine
+  Engine --> Renderer[renderer.js: Canvas 2D]
   Artwork[WebP e personaggi vettoriali] --> Renderer
   GitHub[GitHub Actions: test] --> Pages[Cloudflare Pages: dist]
 ```

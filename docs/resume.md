@@ -16,7 +16,7 @@ Nuovo repository `albertogiacomel/SaltiMagici`, nuova pubblicazione Cloudflare P
 
 - Fisica a passo fisso 1/60 s, disaccoppiata dal rendering. Le prove percorrono tutti i livelli con normali input senza teletrasporti.
 - localStorage `salti_magici_v1`: versione 1, preferenze globali, progressi per `classic`/`elsa`. Ripresa dal checkpoint, non dalla posizione esatta.
-- Traduzioni: cataloghi `dist/i18n.mjs`; `translate()` aggiorna anche dialog, HUD, pulsanti e livelli senza reload.
+- Traduzioni: cataloghi `dist/i18n.js`; `translate()` aggiorna anche dialog, HUD, pulsanti e livelli senza reload.
 - Sprite vettoriali: arti, treccia e mantello animati separatamente; orientamento specchiato in base alla direzione. Il generatore ha rifiutato la tavola raster; non è stato usato un fallback API.
 - MIT: conservare attribuzione upstream e LICENSE.txt pubblicato.
 - Nessuna dipendenza di runtime, telemetria, API a pagamento o database.
